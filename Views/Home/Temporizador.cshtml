@@ -1,0 +1,117 @@
+﻿@{
+    ViewData["Title"] = "Temporizador";
+}
+
+<div class="container mt-4">
+    <h1>Temporizador de Cuenta Regresiva</h1>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="tiempoInput" class="form-label">Tiempo en segundos</label>
+                        <input type="number" class="form-control" id="tiempoInput" min="1" value="10">
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" id="iniciarBtn">Iniciar Cuenta Regresiva</button>
+                        <button class="btn btn-secondary" id="detenerBtn" disabled>Detener</button>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <h2 id="contador" class="display-1">00:00</h2>
+                        <div class="progress mt-3">
+                            <div id="progresoTiempo" class="progress-bar" role="progressbar" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tiempoInput = document.getElementById('tiempoInput');
+            const iniciarBtn = document.getElementById('iniciarBtn');
+            const detenerBtn = document.getElementById('detenerBtn');
+            const contador = document.getElementById('contador');
+            const progresoTiempo = document.getElementById('progresoTiempo');
+
+            let temporizador;
+            let tiempoTotal;
+            let tiempoRestante;
+
+            // Formatear tiempo en formato MM:SS
+            function formatearTiempo(segundos) {
+                const minutos = Math.floor(segundos / 60);
+                const segs = segundos % 60;
+                return `${minutos.toString().padStart(2, '0')}:${segs.toString().padStart(2, '0')}`;
+            }
+
+            // Iniciar temporizador
+            iniciarBtn.addEventListener('click', function() {
+                // Obtener tiempo ingresado
+                tiempoTotal = parseInt(tiempoInput.value, 10);
+                if (isNaN(tiempoTotal) || tiempoTotal <= 0) {
+                    alert('Por favor, ingrese un tiempo válido mayor a 0');
+                    return;
+                }
+
+                // Configurar estado inicial
+                tiempoRestante = tiempoTotal;
+                contador.textContent = formatearTiempo(tiempoRestante);
+                progresoTiempo.style.width = '100%';
+                progresoTiempo.className = 'progress-bar bg-success';
+
+                // Cambiar estado de botones
+                iniciarBtn.disabled = true;
+                detenerBtn.disabled = false;
+                tiempoInput.disabled = true;
+
+                // Iniciar intervalo
+                temporizador = setInterval(function() {
+                    tiempoRestante--;
+
+                    // Actualizar contador
+                    contador.textContent = formatearTiempo(tiempoRestante);
+
+                    // Actualizar barra de progreso
+                    const porcentaje = (tiempoRestante / tiempoTotal) * 100;
+                    progresoTiempo.style.width = `${porcentaje}%`;
+
+                    // Cambiar color según el tiempo restante
+                    if (porcentaje < 25) {
+                        progresoTiempo.className = 'progress-bar bg-danger';
+                    } else if (porcentaje < 50) {
+                        progresoTiempo.className = 'progress-bar bg-warning';
+                    }
+
+                    // Verificar si el temporizador ha terminado
+                    if (tiempoRestante <= 0) {
+                        clearInterval(temporizador);
+                        iniciarBtn.disabled = false;
+                        detenerBtn.disabled = true;
+                        tiempoInput.disabled = false;
+
+                        // Notificar al usuario
+                        const audio = new Audio('/audio/alarm.mp3'); // Opcional: agregar un sonido
+                        audio.play().catch(e => console.log('No se pudo reproducir el audio', e));
+
+                        alert('¡Tiempo finalizado!');
+                    }
+                }, 1000);
+            });
+
+            // Detener temporizador
+            detenerBtn.addEventListener('click', function() {
+                clearInterval(temporizador);
+                iniciarBtn.disabled = false;
+                detenerBtn.disabled = true;
+                tiempoInput.disabled = false;
+            });
+        });
+    </script>
+}

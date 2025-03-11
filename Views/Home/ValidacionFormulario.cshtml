@@ -1,0 +1,75 @@
+﻿@{
+    ViewData["Title"] = "Validación de Formulario";
+}
+
+<div class="container mt-4">
+    <h1>Validación de Contraseña</h1>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <form id="passwordForm">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Contraseña (mínimo 8 caracteres)</label>
+                            <input type="password" class="form-control" id="password" placeholder="Ingrese su contraseña">
+                            <div id="passwordFeedback" class="form-text"></div>
+                            <div class="progress mt-2">
+                                <div id="passwordStrength" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>Enviar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const passwordFeedback = document.getElementById('passwordFeedback');
+            const passwordStrength = document.getElementById('passwordStrength');
+            const submitBtn = document.getElementById('submitBtn');
+            const form = document.getElementById('passwordForm');
+
+            // Validar contraseña mientras el usuario escribe
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                const length = password.length;
+                const minLength = 8;
+
+                // Actualizar mensaje de retroalimentación
+                passwordFeedback.textContent = `Longitud actual: ${length} caracteres. Mínimo requerido: ${minLength} caracteres.`;
+
+                // Calcular porcentaje para la barra de progreso (máximo 100%)
+                const percentage = Math.min((length / minLength) * 100, 100);
+                passwordStrength.style.width = `${percentage}%`;
+
+                // Cambiar color según la fortaleza
+                if (length < 4) {
+                    passwordStrength.className = 'progress-bar bg-danger';
+                } else if (length < 8) {
+                    passwordStrength.className = 'progress-bar bg-warning';
+                } else {
+                    passwordStrength.className = 'progress-bar bg-success';
+                }
+
+                // Habilitar/deshabilitar botón de envío
+                submitBtn.disabled = length < minLength;
+            });
+
+            // Manejar envío del formulario
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('Contraseña válida. Formulario enviado correctamente.');
+                form.reset();
+                passwordStrength.style.width = '0%';
+                passwordFeedback.textContent = '';
+            });
+        });
+    </script>
+}
+
