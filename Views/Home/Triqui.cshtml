@@ -1,0 +1,194 @@
+﻿@{
+    ViewData["Title"] = "Juego de Triqui";
+}
+
+<div class="container mt-4">
+    <h1>Juego de Triqui</h1>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div id="jugador1" class="badge bg-primary p-2">Jugador 1 (X)</div>
+                        <div id="jugador2" class="badge bg-secondary p-2">Jugador 2 (O)</div>
+                    </div>
+
+                    <div id="tablero" class="mb-3">
+                        <div class="row g-0">
+                            <div class="col-4 celda" data-index="0"></div>
+                            <div class="col-4 celda" data-index="1"></div>
+                            <div class="col-4 celda" data-index="2"></div>
+                        </div>
+                        <div class="row g-0">
+                            <div class="col-4 celda" data-index="3"></div>
+                            <div class="col-4 celda" data-index="4"></div>
+                            <div class="col-4 celda" data-index="5"></div>
+                        </div>
+                        <div class="row g-0">
+                            <div class="col-4 celda" data-index="6"></div>
+                            <div class="col-4 celda" data-index="7"></div>
+                            <div class="col-4 celda" data-index="8"></div>
+                        </div>
+                    </div>
+
+                    <div id="mensaje" class="alert alert-info d-none"></div>
+
+                    <button id="reiniciarBtn" class="btn btn-primary w-100">Reiniciar Juego</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .celda {
+        height: 100px;
+        border: 2px solid #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+        .celda:hover {
+            background-color: #f0f0f0;
+        }
+
+        .celda.x {
+            color: #0d6efd;
+        }
+
+        .celda.o {
+            color: #6c757d;
+        }
+
+        .celda.ganadora {
+            background-color: #d4edda;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tablero = document.getElementById('tablero');
+            const celdas = document.querySelectorAll('.celda');
+            const jugador1 = document.getElementById('jugador1');
+            const jugador2 = document.getElementById('jugador2');
+            const mensaje = document.getElementById('mensaje');
+            const reiniciarBtn = document.getElementById('reiniciarBtn');
+
+            let turnoJugador1 = true;
+            let juegoTerminado = false;
+            let estadoTablero = ['', '', '', '', '', '', '', '', ''];
+
+            // Combinaciones ganadoras (índices)
+            const combinacionesGanadoras = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Filas
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columnas
+                [0, 4, 8], [2, 4, 6]             // Diagonales
+            ];
+
+            // Inicializar juego
+            function iniciarJuego() {
+                estadoTablero = ['', '', '', '', '', '', '', '', ''];
+                juegoTerminado = false;
+                turnoJugador1 = true;
+
+                // Limpiar tablero
+                celdas.forEach(celda => {
+                    celda.textContent = '';
+                    celda.classList.remove('x', 'o', 'ganadora');
+                });
+
+                // Actualizar indicadores de turno
+                actualizarTurno();
+
+                // Ocultar mensaje
+                mensaje.classList.add('d-none');
+            }
+
+            // Actualizar indicador de turno
+            function actualizarTurno() {
+                if (turnoJugador1) {
+                    jugador1.classList.replace('bg-secondary', 'bg-primary');
+                    jugador2.classList.replace('bg-primary', 'bg-secondary');
+                } else {
+                    jugador1.classList.replace('bg-primary', 'bg-secondary');
+                    jugador2.classList.replace('bg-secondary', 'bg-primary');
+                }
+            }
+
+            // Verificar ganador
+            function verificarGanador() {
+                for (const combinacion of combinacionesGanadoras) {
+                    const [a, b, c] = combinacion;
+                    if (
+                        estadoTablero[a] &&
+                        estadoTablero[a] === estadoTablero[b] &&
+                        estadoTablero[a] === estadoTablero[c]
+                    ) {
+                        // Marcar celdas ganadoras
+                        celdas[a].classList.add('ganadora');
+                        celdas[b].classList.add('ganadora');
+                        celdas[c].classList.add('ganadora');
+
+                        // Mostrar mensaje
+                        const ganador = estadoTablero[a] === 'X' ? 'Jugador 1' : 'Jugador 2';
+                        mensaje.textContent = `¡${ganador} ha ganado!`;
+                        mensaje.classList.remove('d-none', 'alert-info', 'alert-warning');
+                        mensaje.classList.add('alert-success');
+
+                        return true;
+                    }
+                }
+
+                // Verificar empate
+                if (!estadoTablero.includes('')) {
+                    mensaje.textContent = '¡Empate!';
+                    mensaje.classList.remove('d-none', 'alert-info', 'alert-success');
+                    mensaje.classList.add('alert-warning');
+                    return true;
+                }
+
+                return false;
+            }
+
+            // Manejar clic en celda
+            celdas.forEach(celda => {
+                celda.addEventListener('click', function() {
+                    const indice = this.getAttribute('data-index');
+
+                    // Verificar si la celda ya está marcada o el juego terminó
+                    if (estadoTablero[indice] !== '' || juegoTerminado) {
+                        return;
+                    }
+
+                    // Marcar celda según turno
+                    const marca = turnoJugador1 ? 'X' : 'O';
+                    estadoTablero[indice] = marca;
+                    this.textContent = marca;
+                    this.classList.add(turnoJugador1 ? 'x' : 'o');
+
+                    // Verificar si hay ganador
+                    juegoTerminado = verificarGanador();
+
+                    if (!juegoTerminado) {
+                        // Cambiar turno
+                        turnoJugador1 = !turnoJugador1;
+                        actualizarTurno();
+                    }
+                });
+            });
+
+            // Reiniciar juego
+            reiniciarBtn.addEventListener('click', iniciarJuego);
+
+            // Iniciar juego al cargar
+            iniciarJuego();
+        });
+    </script>
+}
